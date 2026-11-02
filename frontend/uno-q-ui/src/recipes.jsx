@@ -84,6 +84,12 @@ return(
   {/* Loop through the filtered recipes to create a card for each one. */}
   {filteredRecipes.map((recipe) => (
     <article key={recipe.id}>
+     {/* Image area for this recipe:
+   replace this placeholder with a real photo later. */}
+       <div className="recipe-image-placeholder">
+       Recipe photo
+       </div>
+
       {/* Recipe name */}
       <h2>{recipe.name}</h2>
 
