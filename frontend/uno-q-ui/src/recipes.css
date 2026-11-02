@@ -1,0 +1,15 @@
+/*
+ - Smart Baking Assistant — Recipe Page Styles
+ 
+ - Purpose:
+  Controls the appearance of the recipe browsing page.
+ - add styling for the layout, search bar,
+   recipe cards, and responsive design.
+ */
+
+/* Main recipe page container */
+.recipe-page {
+  background-color: #FAF8F3;
+  min-height: 100vh;
+  padding: 60px 40px;
+}
