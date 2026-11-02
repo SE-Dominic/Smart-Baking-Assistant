@@ -94,6 +94,24 @@ return(
       />
     </div>
 
+{/* Recipe difficulty filter */}
+<div className="recipe-filters">
+  <label htmlFor="difficulty-filter">
+    Difficulty
+  </label>
+
+  <select
+    id="difficulty-filter"
+    value={selectedDifficulty}
+    onChange={(e) => setSelectedDifficulty(e.target.value)}
+  >
+    <option value="All">All Difficulties</option>
+    <option value="Easy">Easy</option>
+    <option value="Medium">Medium</option>
+    <option value="Hard">Hard</option>
+  </select>
+</div>
+
 {/* Display the recipes that match the user's search. */}
 <section>
   
