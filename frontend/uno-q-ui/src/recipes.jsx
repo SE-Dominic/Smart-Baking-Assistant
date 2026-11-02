@@ -4,7 +4,7 @@ Purpose:
 - Allow users to browse, search, and filter baking and cooking recipes. 
 */
 import { useState } from "react";
-
+import "./recipes.css";
 /*
  * Sample recipe data
  - Each recipe is an object with an ID, name, category,
@@ -54,7 +54,7 @@ export default function Recipes(){
     recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 return(
-  <main>
+  <main className="recipe-page">
     {/* Main heading for recipe page*/}
     <h1>
     On the Menu
