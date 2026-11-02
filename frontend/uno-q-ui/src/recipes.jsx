@@ -5,18 +5,19 @@ Purpose:
 */
 import { useState } from "react";
 import "./recipes.css";
+
 /*
  * Sample recipe data
  - Each recipe is an object with an ID, name, category,
    cooking time, and description.
  - temp exapmles
  */
-
 const recipes = [
   {
     id: 1,
     name: "Chocolate Chip Cookies",
     category: "Baking",
+    difficulty: "Easy"
     time: 25,
     description: "Classic cookies with chocolate chips.",
   },
@@ -25,6 +26,7 @@ const recipes = [
     name: "Banana Bread",
     category: "Baking",
     time: 60,
+    difficulty: "Easy"
     description: "Soft, homemade banana bread.",
   },
   {
@@ -32,6 +34,7 @@ const recipes = [
     name: "Creamy Garlic Pasta",
     category: "Cooking",
     time: 30,
+    difficulty: "Medium"
     description: "A simple pasta dish with garlic sauce.",
   },
   {
@@ -39,6 +42,7 @@ const recipes = [
     name: "Blueberry Muffins",
     category: "Baking",
     time: 35,
+    difficulty: "Hard"
     description: "Light muffins filled with blueberries.",
   },
 ];
@@ -47,6 +51,14 @@ const recipes = [
 export default function Recipes(){ 
   // stores the text the user enters into the recipe search bar
   const [searchTerm, setSearchTerm] = useState("");
+ 
+/*
+ * Stores the recipe category selected by the user.
+ * All recipes is the default so every recipe
+   appears when the page first loads.
+ */
+const [selectedCategory, setSelectedCategory] = useState("All Recipes");
+
  // filter recipies based on search
   //coverts it to lowercase-> check if the recipe name contains the searched text
   // makes it not case sensitive
