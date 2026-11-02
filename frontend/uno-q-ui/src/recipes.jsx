@@ -68,7 +68,7 @@ return(
     <input 
       type="text"
       placeholder="Search recipes..."
-      value={SearchTerm}
+      value={searchTerm}
       onChange={(e) => setSearchTerm(e.target.value)}
       />
     </div>
