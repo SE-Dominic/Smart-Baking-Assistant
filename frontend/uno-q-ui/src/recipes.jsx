@@ -58,7 +58,16 @@ export default function Recipes(){
    appears when the page first loads.
  */
 const [selectedCategory, setSelectedCategory] = useState("All Recipes");
-
+/*
+ * Stores the difficulty selected by the user.
+ * "All" means recipes of every difficulty are shown.
+ */
+const [selectedDifficulty, setSelectedDifficulty] = useState("All");
+/*
+ * Stores how the user wants recipes sorted by time.
+ * "Default" keeps the original recipe order.
+ */
+const [timeSort, setTimeSort] = useState("Default");
  // filter recipies based on search
   //coverts it to lowercase-> check if the recipe name contains the searched text
   // makes it not case sensitive
