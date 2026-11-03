@@ -21,13 +21,9 @@
   background-color: #FAF8F3;
   min-height: 100vh;
   padding: 60px 40px;
-/* Decorative background for the recipe page */
-  background-image: url("/recipe-background.png");
   background-color: #FFF5E7;
   /* Keep the entire illustration visible instead of cropping it. */
-  background-size: 100% auto;
-  background-position: center top;
-  background-repeat: no-repeat;
+  
   min-height: 100vh;
 
 }
