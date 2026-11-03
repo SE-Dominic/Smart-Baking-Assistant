@@ -21,6 +21,14 @@
   background-color: #FAF8F3;
   min-height: 100vh;
   padding: 60px 40px;
+/* Decorative background for the recipe page */
+  background-image: url("/recipe-background.png");
+  background-color: #FFF5E7;
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+
 }
 
 /*
