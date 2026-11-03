@@ -68,12 +68,49 @@ const [selectedDifficulty, setSelectedDifficulty] = useState("All");
  * "Default" keeps the original recipe order.
  */
 const [timeSort, setTimeSort] = useState("Default");
- // filter recipies based on search
+  // filter recipies based on search
   //coverts it to lowercase-> check if the recipe name contains the searched text
   // makes it not case sensitive
-  const filteredRecipes = recipes.filter((recipe) =>
-    recipe.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  
+/*
+ * Filter recipes based on:
+  1. The text entered in the search bar.
+  2. The difficulty selected from the dropdown.
+ */
+const filteredRecipes = recipes.filter((recipe) => {
+  // Check whether the recipe name matches the search.
+  const matchesSearch = recipe.name
+    .toLowerCase()
+    .includes(searchTerm.toLowerCase());
+
+  // Show every difficulty when "All" is selected.
+  const matchesDifficulty =
+    selectedDifficulty === "All" ||
+    recipe.difficulty === selectedDifficulty;
+
+  // A recipe must match BOTH conditions to appear.
+  return matchesSearch && matchesDifficulty;
+});
+
+/*
+ * Sort the filtered recipes by preparation time.
+ * Creates a copy so the original recipe list stays unchanged.
+ */
+const sortedRecipes = [...filteredRecipes].sort((a, b) => {
+  // Recipes with fewer minutes appear first.
+  if (timeSort === "Shortest") {
+    return a.time - b.time;
+  }
+
+  // Recipes with more minutes appear first.
+  if (timeSort === "Longest") {
+    return b.time - a.time;
+  }
+
+  // Keep the original order when Default is selected.
+  return 0;
+});
+
 return(
   <main className="recipe-page">
     {/* Main heading for recipe page*/}
@@ -112,6 +149,23 @@ return(
   </select>
 </div>
 
+{/* Sort recipes by estimated preparation time */}
+<div className="recipe-filters">
+  <label htmlFor="time-sort">
+    Sort by Time
+  </label>
+
+  <select
+    id="time-sort"
+    value={timeSort}
+    onChange={(e) => setTimeSort(e.target.value)}
+  >
+    <option value="Default">Default Order</option>
+    <option value="Shortest">Shortest Time First</option>
+    <option value="Longest">Longest Time First</option>
+  </select>
+</div>
+
 {/* Display the recipes that match the user's search. */}
 <section>
   
@@ -121,7 +175,7 @@ return(
 )}
 
   {/* Loop through the filtered recipes to create a card for each one. */}
-  {filteredRecipes.map((recipe) => (
+  {sortedRecipes.map((recipe) => (
     <article key={recipe.id}>
      {/* Image area for this recipe:
    replace this placeholder with a real photo later. */}
