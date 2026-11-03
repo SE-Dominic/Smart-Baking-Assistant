@@ -2,8 +2,9 @@
 import { useMemo, useState } from "react";
 import "./RecipePage.css";
 
-// sample recipes for now until we connect the database
-const recipes = [
+// Sample recipes until we connect our database.
+// Real recipes can use the same structure later.
+const sampleRecipes = [
   {
     id: 1,
     name: "Classic Chocolate Chip Cookies",
@@ -35,7 +36,7 @@ const recipes = [
       "Shape the loaf and allow it to proof.",
       "Bake in a preheated Dutch oven."
     ],
-    image: "https://images.unsplash.com/photo-1585478259715-876acc5be8eb?w=700"
+    image: "/breadroll.png"
   },
   {
     id: 3,
@@ -104,73 +105,161 @@ const recipes = [
   }
 ];
 
-// categories users can choose from
 const categories = [
-  "All Recipes",
-  "Main Dishes",
-  "Breakfast",
-  "Desserts",
-  "Bread"
+  {
+    name: "All Recipes",
+    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400"
+  },
+  {
+    name: "Main Dishes",
+    image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400"
+  },
+  {
+    name: "Breakfast",
+    image: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=400"
+  },
+  {
+    name: "Desserts",
+    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400"
+  },
+  {
+    name: "Bread",
+    image: "/breadroll.png"
+  }
 ];
 
-export default function RecipePage() {
+// Supports simple sample ingredients and structured database ingredients.
+function ingredientText(ingredient) {
+  if (typeof ingredient === "string") {
+    return ingredient;
+  }
 
-  // keeps track of what the user searches for
+  if (!ingredient || typeof ingredient !== "object") {
+    return "";
+  }
+
+  const amount = ingredient.quantity ?? ingredient.amount ?? "";
+  const unit = ingredient.unit ?? "";
+  const name = ingredient.name ?? "";
+
+  return [amount, unit, name]
+    .filter((value) => value !== "")
+    .join(" ");
+}
+
+// Supports instructions stored as text or structured steps.
+function instructionText(instruction) {
+  if (typeof instruction === "string") {
+    return instruction;
+  }
+
+  return instruction?.description ?? instruction?.text ?? "";
+}
+
+export default function RecipePage({ recipes = sampleRecipes }) {
   const [search, setSearch] = useState("");
-
-  // keeps track of the selected category
   const [category, setCategory] = useState("All Recipes");
-
-  // lets users filter between cooking and baking
   const [type, setType] = useState("All");
-
-  // stores the recipe the user clicks on
   const [selectedRecipe, setSelectedRecipe] = useState(null);
+  const [checkedIngredients, setCheckedIngredients] = useState([]);
 
-  // filters the recipes based on the user's selections
+  // Keeps the page working with sample recipes or recipes from our backend.
+  const recipeList = Array.isArray(recipes) ? recipes : [];
+
   const filteredRecipes = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return recipes.filter((recipe) => {
+    return recipeList.filter((recipe) => {
+      const name = String(recipe.name ?? recipe.title ?? "");
+      const ingredients = Array.isArray(recipe.ingredients)
+        ? recipe.ingredients
+        : [];
 
-      // checks if the search matches the recipe name or ingredients
       const matchesSearch =
-        recipe.name.toLowerCase().includes(query) ||
-        recipe.ingredients.some((ingredient) =>
-          ingredient.toLowerCase().includes(query)
+        name.toLowerCase().includes(query) ||
+        ingredients.some((ingredient) =>
+          ingredientText(ingredient).toLowerCase().includes(query)
         );
 
-      // checks which category is selected
       const matchesCategory =
         category === "All Recipes" || recipe.category === category;
 
-      // checks if the user wants cooking, baking, or both
-      const matchesType = type === "All" || recipe.type === type;
+      const matchesType =
+        type === "All" || recipe.type === type;
 
       return matchesSearch && matchesCategory && matchesType;
     });
-  }, [search, category, type]);
+  }, [recipeList, search, category, type]);
+
+  // Opens the recipe and resets the ingredient checklist.
+  function openRecipe(recipe) {
+    setSelectedRecipe(recipe);
+    setCheckedIngredients([]);
+  }
+
+  // Marks ingredients as checked or unchecked.
+  function toggleIngredient(index) {
+    setCheckedIngredients((current) =>
+      current.includes(index)
+        ? current.filter((item) => item !== index)
+        : [...current, index]
+    );
+  }
+
+  const selectedIngredients = Array.isArray(selectedRecipe?.ingredients)
+    ? selectedRecipe.ingredients
+    : [];
+
+  const selectedInstructions = Array.isArray(selectedRecipe?.instructions)
+    ? selectedRecipe.instructions
+    : [];
 
   return (
     <div className="recipe-page">
-
-      {/* top section of the recipe page */}
+      {/* Header */}
       <header className="recipe-header">
         <div className="recipe-logo">Smart Baking Assistant</div>
-        <span className="recipe-header-label">THE RECIPE COLLECTION</span>
+        <span className="recipe-header-label">
+          THE RECIPE COLLECTION
+        </span>
       </header>
 
-      {/* main title and introduction */}
+      {/* Cookbook title */}
       <section className="recipe-hero">
-        <span className="recipe-eyebrow">YOUR KITCHEN COMPANION</span>
-        <h1>The Recipe Box</h1>
-        <p>
-          A little inspiration for your kitchen. Explore something
-          delicious to cook or bake today.
-        </p>
+        <span className="recipe-eyebrow">
+          YOUR KITCHEN COMPANION
+        </span>
+
+        <div className="recipe-hero-divider">
+          <span className="recipe-divider-line"></span>
+
+          <span className="recipe-whisk">
+            <svg
+              width="30"
+              height="30"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M6.5 17.5 3 21" />
+              <path d="M8 16c-3-3-3-7 0-10s7-3 10 0 3 7 0 10-7 3-10 0Z" />
+              <path d="M8 16c-1-4 1-8 6-12" />
+              <path d="M8 16c4 1 8-1 12-6" />
+              <path d="M8 16 18 6" />
+            </svg>
+          </span>
+
+          <span className="recipe-divider-line"></span>
+        </div>
+
+        <h1>The Recipe Book</h1>
       </section>
 
-      {/* search bar and dropdown filters */}
+      {/* Search and filters */}
       <section className="recipe-filter-bar">
         <input
           aria-label="Search recipes"
@@ -196,96 +285,187 @@ export default function RecipePage() {
           onChange={(event) => setCategory(event.target.value)}
         >
           {categories.map((item) => (
-            <option key={item} value={item}>{item}</option>
+            <option key={item.name} value={item.name}>
+              {item.name}
+            </option>
           ))}
         </select>
       </section>
 
       <main className="recipe-content">
-
-        {/* shows recipe details if a recipe was clicked */}
         {selectedRecipe ? (
           <section className="recipe-detail">
-
-            {/* button to go back to the recipe list */}
+            {/* Return to recipe collection */}
             <button
+              type="button"
               className="recipe-back"
               onClick={() => setSelectedRecipe(null)}
             >
               ← Back to recipes
             </button>
 
-            <img src={selectedRecipe.image} alt={selectedRecipe.name} />
+            {selectedRecipe.image && (
+              <img
+                src={selectedRecipe.image}
+                alt={selectedRecipe.name ?? selectedRecipe.title ?? "Recipe"}
+              />
+            )}
 
             <span className="recipe-eyebrow">
-              {selectedRecipe.category} · {selectedRecipe.type}
+              {selectedRecipe.category}
+              {selectedRecipe.type ? ` · ${selectedRecipe.type}` : ""}
             </span>
 
-            <h2>{selectedRecipe.name}</h2>
-            <p>{selectedRecipe.time} · {selectedRecipe.difficulty}</p>
+            <h2>{selectedRecipe.name ?? selectedRecipe.title}</h2>
 
-            {/* lists the ingredients for the selected recipe */}
+            {/* Recipe information */}
+            <p>
+              {[
+                selectedRecipe.time,
+                selectedRecipe.difficulty
+              ].filter(Boolean).join(" · ")}
+            </p>
+
+            {(selectedRecipe.prepTime != null ||
+              selectedRecipe.cookTime != null ||
+              selectedRecipe.servings != null) && (
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  marginBottom: "25px"
+                }}
+              >
+                {selectedRecipe.prepTime != null && (
+                  <span>Prep: {selectedRecipe.prepTime} min</span>
+                )}
+
+                {selectedRecipe.cookTime != null && (
+                  <span>Cook: {selectedRecipe.cookTime} min</span>
+                )}
+
+                {selectedRecipe.servings != null && (
+                  <span>Servings: {selectedRecipe.servings}</span>
+                )}
+              </div>
+            )}
+
+            {/* Ingredient checklist */}
             <h3>Ingredients</h3>
-            <ul>
-              {selectedRecipe.ingredients.map((ingredient) => (
-                <li key={ingredient}>{ingredient}</li>
-              ))}
-            </ul>
 
-            {/* shows the recipe instructions in order */}
+            {selectedIngredients.length > 0 ? (
+              <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+                {selectedIngredients.map((ingredient, index) => (
+                  <li key={index}>
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checkedIngredients.includes(index)}
+                        onChange={() => toggleIngredient(index)}
+                        style={{ accentColor: "#697a66" }}
+                      />
+
+                      <span
+                        style={{
+                          textDecoration: checkedIngredients.includes(index)
+                            ? "line-through"
+                            : "none",
+                          opacity: checkedIngredients.includes(index)
+                            ? 0.55
+                            : 1
+                        }}
+                      >
+                        {ingredientText(ingredient)}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>Ingredients have not been added yet.</p>
+            )}
+
+            {/* Step-by-step directions */}
             <h3>Instructions</h3>
-            <ol>
-              {selectedRecipe.instructions.map((step, index) => (
-                <li key={index}>{step}</li>
-              ))}
-            </ol>
+
+            {selectedInstructions.length > 0 ? (
+              <ol>
+                {selectedInstructions.map((instruction, index) => (
+                  <li key={index}>
+                    {instructionText(instruction)}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p>Instructions have not been added yet.</p>
+            )}
+
+            {/* Hardware integration will be added later. */}
           </section>
         ) : (
           <>
-            {/* heading above the recipe collection */}
-            <div className="recipe-section-heading">
-              <div>
-                <span className="recipe-eyebrow">FIND YOUR NEXT FAVORITE</span>
-                <h2>Browse Our Recipes</h2>
-              </div>
-
-              <span>{filteredRecipes.length} recipes</span>
-            </div>
-
-            {/* category buttons */}
+            {/* Circular category pictures */}
             <div className="recipe-categories">
               {categories.map((item) => (
                 <button
-                  key={item}
-                  className={category === item ? "active" : ""}
-                  onClick={() => setCategory(item)}
+                  key={item.name}
+                  type="button"
+                  className={`recipe-category ${
+                    category === item.name ? "active" : ""
+                  }`}
+                  onClick={() => setCategory(item.name)}
                 >
-                  {item}
+                  <span className="recipe-category-image">
+                    <img src={item.image} alt="" />
+                  </span>
+
+                  <span className="recipe-category-label">
+                    {item.name}
+                  </span>
                 </button>
               ))}
             </div>
 
-            {/* displays the recipes that match the filters */}
+            {/* Recipe cards */}
             <div className="recipe-grid">
               {filteredRecipes.map((recipe) => (
                 <button
                   key={recipe.id}
+                  type="button"
                   className="recipe-card"
-                  onClick={() => setSelectedRecipe(recipe)}
+                  onClick={() => openRecipe(recipe)}
                 >
-                  <img src={recipe.image} alt={recipe.name} />
+                  {recipe.image && (
+                    <img
+                      src={recipe.image}
+                      alt={recipe.name ?? recipe.title ?? "Recipe"}
+                    />
+                  )}
 
                   <span className="recipe-card-category">
-                    {recipe.category} · {recipe.type}
+                    {recipe.category}
+                    {recipe.type ? ` · ${recipe.type}` : ""}
                   </span>
 
-                  <h3>{recipe.name}</h3>
-                  <p>{recipe.time} · {recipe.difficulty}</p>
+                  <h3>{recipe.name ?? recipe.title}</h3>
+
+                  <p>
+                    {[recipe.time, recipe.difficulty]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
                 </button>
               ))}
             </div>
 
-            {/* message if no recipes match the search */}
             {filteredRecipes.length === 0 && (
               <p className="recipe-empty">
                 No recipes found. Try another search or category.
@@ -295,9 +475,8 @@ export default function RecipePage() {
         )}
       </main>
 
-      {/* bottom of the page */}
       <footer className="recipe-footer">
-        Made for little moments in the kitchen.
+        Kitchen Companion
       </footer>
     </div>
   );
