@@ -24,7 +24,8 @@
 /* Decorative background for the recipe page */
   background-image: url("/recipe-background.png");
   background-color: #FFF5E7;
-  background-size: cover;
+  /* Keep the entire illustration visible instead of cropping it. */
+  background-size: 100% auto;
   background-position: center top;
   background-repeat: no-repeat;
   min-height: 100vh;
