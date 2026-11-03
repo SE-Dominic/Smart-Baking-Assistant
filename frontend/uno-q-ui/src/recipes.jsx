@@ -17,7 +17,7 @@ const recipes = [
     id: 1,
     name: "Chocolate Chip Cookies",
     category: "Baking",
-    difficulty: "Easy"
+    difficulty: "Easy",
     time: 25,
     description: "Classic cookies with chocolate chips.",
   },
@@ -26,7 +26,7 @@ const recipes = [
     name: "Banana Bread",
     category: "Baking",
     time: 60,
-    difficulty: "Easy"
+    difficulty: "Easy",
     description: "Soft, homemade banana bread.",
   },
   {
@@ -34,7 +34,7 @@ const recipes = [
     name: "Creamy Garlic Pasta",
     category: "Cooking",
     time: 30,
-    difficulty: "Medium"
+    difficulty: "Medium",
     description: "A simple pasta dish with garlic sauce.",
   },
   {
@@ -42,7 +42,7 @@ const recipes = [
     name: "Blueberry Muffins",
     category: "Baking",
     time: 35,
-    difficulty: "Hard"
+    difficulty: "Hard",
     description: "Light muffins filled with blueberries.",
   },
 ];
