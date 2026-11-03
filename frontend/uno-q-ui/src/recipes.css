@@ -146,3 +146,42 @@
   justify-content: center;
 }
 
+/*
+ * Recipe filter dropdowns
+   colors to match the recipe page.
+ */
+.recipe-filters {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* Labels above each dropdown */
+.recipe-filters label {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4B382C;
+}
+
+/* Dropdown appearance */
+.recipe-filters select {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  color: #4B382C;
+  background-color: #FFFEFC;
+  border: 1px solid #D8C8B8;
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+/* Highlight the dropdown when selected */
+.recipe-filters select:focus {
+  outline: 2px solid #B9A18C;
+  outline-offset: 2px;
+}
+
