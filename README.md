@@ -26,6 +26,12 @@ Instead of only displaying the weight of an ingredient, the scale and applicatio
 5. The assistant tells the user to add more, stop, or correct the amount.
 6. The user continues through the recipe until it is complete.
 
+## Hardware & Software
+- Arduino Uno Q
+- USB-C Power Cable
+- Load Scale Sensor 
+- Arduino App Lab
+- 
 ## Future Features
 
 - AI cooking assistant
