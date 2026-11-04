@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import RecipePage from "./RecipePage";
+import LoginPage from "./pages/LoginPage";
 
 export default function App() {
   const [sensor, setSensor] = useState(null);
@@ -47,13 +48,18 @@ return (
 
       <button onClick={() => setCurrentPage("hardware")}>
         UNO Q Test
+
+      </button>
+            <button onClick={() => setCurrentPage("login")}>
+        Log In
       </button>
     </nav>
 
-    {/* show whichever page the user selected */}
-    {currentPage === "recipes" ? (
-      <RecipePage />
-    ) : (
+       {currentPage === "recipes" && <RecipePage />}
+
+    {currentPage === "login" && <LoginPage />}
+
+    {currentPage === "hardware" && (
       <main style={{ padding: 24, fontFamily: "sans-serif" }}>
         <h1>UNO Q Link Test</h1>
         <p>WebSocket: {status}</p>

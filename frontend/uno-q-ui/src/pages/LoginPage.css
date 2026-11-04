@@ -1,0 +1,126 @@
+/* same colors as the recipe page so the site feels consistent */
+.login-page {
+  --cream: #faf8f3;
+  --sage: #687563;
+  --dark: #35372e;
+  --muted: #77776d;
+  --border: #e8d8c6;
+
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 16px;
+  background: var(--cream);
+  color: var(--dark);
+  font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+.login-page * {
+  box-sizing: border-box;
+}
+
+/* the white box in the middle */
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 48px 40px;
+  background: #fffdf9;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(73, 48, 36, 0.08);
+  text-align: center;
+}
+
+.login-eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 12px;
+}
+
+.login-card h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 36px;
+  font-weight: 400;
+  margin: 0 0 8px;
+}
+
+.login-subtitle {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 32px;
+}
+
+/* stack the label + input pairs */
+.login-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: left;
+}
+
+.login-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-card input {
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fffaf4;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: var(--sage);
+}
+
+.login-button {
+  margin-top: 8px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  background: var(--sage);
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.login-button:hover {
+  background: #566252;
+}
+
+.login-message {
+  margin: 18px 0 0;
+  font-size: 14px;
+  color: #6b4b35;
+}
+
+.login-switch {
+  margin: 28px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* make the "Create an account" button look like a link */
+.login-switch button {
+  padding: 0;
+  font: inherit;
+  color: var(--sage);
+  font-weight: 600;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
