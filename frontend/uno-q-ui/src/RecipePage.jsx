@@ -1,134 +1,31 @@
-
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./RecipePage.css";
 
-// Sample recipes until we connect our database.
-// Real recipes can use the same structure later.
-const sampleRecipes = [
-  {
-    id: 1,
-    name: "Classic Chocolate Chip Cookies",
-    category: "Desserts",
-    type: "Baking",
-    time: "30 min",
-    difficulty: "Easy",
-    ingredients: ["Flour", "Butter", "Sugar", "Chocolate chips"],
-    instructions: [
-      "Preheat the oven to 350°F.",
-      "Cream together the butter and sugar.",
-      "Mix in the remaining ingredients.",
-      "Scoop dough onto a baking sheet.",
-      "Bake until golden brown."
-    ],
-    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=700"
-  },
-  {
-    id: 2,
-    name: "Homemade Sourdough Bread",
-    category: "Bread",
-    type: "Baking",
-    time: "1 day",
-    difficulty: "Intermediate",
-    ingredients: ["Flour", "Water", "Salt", "Sourdough starter"],
-    instructions: [
-      "Combine the ingredients to form a dough.",
-      "Stretch and fold the dough during fermentation.",
-      "Shape the loaf and allow it to proof.",
-      "Bake in a preheated Dutch oven."
-    ],
-    image: "/breadroll.png"
-  },
-  {
-    id: 3,
-    name: "Creamy Garlic Pasta",
-    category: "Main Dishes",
-    type: "Cooking",
-    time: "25 min",
-    difficulty: "Easy",
-    ingredients: ["Pasta", "Garlic", "Cream", "Parmesan"],
-    instructions: [
-      "Cook the pasta until al dente.",
-      "Sauté garlic in a pan.",
-      "Add cream and Parmesan.",
-      "Toss the pasta with the sauce."
-    ],
-    image: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=700"
-  },
-  {
-    id: 4,
-    name: "Fluffy Buttermilk Pancakes",
-    category: "Breakfast",
-    type: "Cooking",
-    time: "20 min",
-    difficulty: "Easy",
-    ingredients: ["Flour", "Buttermilk", "Eggs", "Baking powder"],
-    instructions: [
-      "Mix the dry ingredients.",
-      "Whisk together the wet ingredients.",
-      "Combine gently to form a batter.",
-      "Cook on a lightly greased skillet."
-    ],
-    image: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=700"
-  },
-  {
-    id: 5,
-    name: "Roasted Vegetable Medley",
-    category: "Main Dishes",
-    type: "Cooking",
-    time: "40 min",
-    difficulty: "Easy",
-    ingredients: ["Carrots", "Zucchini", "Potatoes", "Olive oil"],
-    instructions: [
-      "Preheat the oven to 425°F.",
-      "Cut the vegetables into even pieces.",
-      "Toss with olive oil and seasoning.",
-      "Roast until tender and golden."
-    ],
-    image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=700"
-  },
-  {
-    id: 6,
-    name: "Vanilla Cupcakes",
-    category: "Desserts",
-    type: "Baking",
-    time: "35 min",
-    difficulty: "Easy",
-    ingredients: ["Flour", "Sugar", "Butter", "Eggs", "Vanilla"],
-    instructions: [
-      "Preheat the oven to 350°F.",
-      "Cream the butter and sugar.",
-      "Add eggs, vanilla, and flour.",
-      "Divide batter into cupcake liners.",
-      "Bake until a toothpick comes out clean."
-    ],
-    image: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=700"
-  }
-];
-
+// pictures for recipe category page
 const categories = [
   {
     name: "All Recipes",
-    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400"
+    image: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400",
   },
   {
     name: "Main Dishes",
-    image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400"
+    image: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400",
   },
   {
     name: "Breakfast",
-    image: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=400"
+    image: "https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=400",
   },
   {
     name: "Desserts",
-    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400"
+    image: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400",
   },
   {
     name: "Bread",
-    image: "/breadroll.png"
-  }
+    image: "/breadroll.png",
+  },
 ];
 
-// Supports simple sample ingredients and structured database ingredients.
+// Formats ingredient data into readable text for the recipe details.
 function ingredientText(ingredient) {
   if (typeof ingredient === "string") {
     return ingredient;
@@ -142,9 +39,7 @@ function ingredientText(ingredient) {
   const unit = ingredient.unit ?? "";
   const name = ingredient.name ?? "";
 
-  return [amount, unit, name]
-    .filter((value) => value !== "")
-    .join(" ");
+  return [amount, unit, name].filter((value) => value !== "").join(" ");
 }
 
 // Supports instructions stored as text or structured steps.
@@ -156,16 +51,86 @@ function instructionText(instruction) {
   return instruction?.description ?? instruction?.text ?? "";
 }
 
-export default function RecipePage({ recipes = sampleRecipes }) {
+export default function RecipePage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All Recipes");
   const [type, setType] = useState("All");
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [checkedIngredients, setCheckedIngredients] = useState([]);
+  const [apiRecipes, setApiRecipes] = useState(null);
+  const [savedRecipeIds, setSavedRecipeIds] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("savedRecipes") || "[]");
+      return Array.isArray(saved) ? saved : [];
+    } catch {
+      return [];
+    }
+  });
 
-  // Keeps the page working with sample recipes or recipes from our backend.
-  const recipeList = Array.isArray(recipes) ? recipes : [];
+  useEffect(() => {
+    localStorage.setItem("savedRecipes", JSON.stringify(savedRecipeIds));
+  }, [savedRecipeIds]);
+  const [showSavedOnly, setShowSavedOnly] = useState(false);
+  // recipe api & how its displayed on website
+  // TEMPORARY
+  useEffect(() => {
+    async function loadRecipes() {
+      try {
+        const response = await fetch(
+          "https://www.themealdb.com/api/json/v1/1/search.php?s=chicken",
+        );
 
+        if (!response.ok) {
+          throw new Error("Failed to fetch recipes");
+        }
+
+        const data = await response.json();
+        const formattedRecipes = (data.meals || []).map((meal) => {
+          const ingredients = [];
+
+          for (let i = 1; i <= 20; i++) {
+            const ingredient = meal[`strIngredient${i}`]?.trim();
+            const measure = meal[`strMeasure${i}`]?.trim();
+
+            if (ingredient) {
+              ingredients.push(`${measure || ""} ${ingredient}`.trim());
+            }
+          }
+          //display of individual meal cards
+          return {
+            id: meal.idMeal,
+            name: meal.strMeal,
+            category: meal.strCategory || "Other",
+            type: "Cooking",
+            time: "Not specified",
+            difficulty: "Not specified",
+            ingredients,
+            instructions: meal.strInstructions
+              ? meal.strInstructions
+                  .split(/\r?\n/)
+                  .map((step) => step.trim())
+                  .filter((step) => step && !/^step\s*\d+\s*:?\s*$/i.test(step))
+              : [],
+            image: meal.strMealThumb,
+          };
+        });
+
+        setApiRecipes(formattedRecipes);
+      } catch (error) {
+        console.error("Recipe API error:", error);
+      }
+    }
+
+    loadRecipes();
+  }, []);
+  // Recipes loaded from TheMealDB API.
+  // Use an empty list while recipes are loading.
+  const recipeList = apiRecipes ?? [];
+  /*
+   * RECIPE SEARCH AND FILTERS
+   * Filters recipes by name, ingredients, category, and cooking type
+   * useMemo recalculates the results only when its dependencies change
+   */
   const filteredRecipes = useMemo(() => {
     const query = search.trim().toLowerCase();
 
@@ -178,14 +143,13 @@ export default function RecipePage({ recipes = sampleRecipes }) {
       const matchesSearch =
         name.toLowerCase().includes(query) ||
         ingredients.some((ingredient) =>
-          ingredientText(ingredient).toLowerCase().includes(query)
+          ingredientText(ingredient).toLowerCase().includes(query),
         );
 
       const matchesCategory =
         category === "All Recipes" || recipe.category === category;
 
-      const matchesType =
-        type === "All" || recipe.type === type;
+      const matchesType = type === "All" || recipe.type === type;
 
       return matchesSearch && matchesCategory && matchesType;
     });
@@ -202,7 +166,7 @@ export default function RecipePage({ recipes = sampleRecipes }) {
     setCheckedIngredients((current) =>
       current.includes(index)
         ? current.filter((item) => item !== index)
-        : [...current, index]
+        : [...current, index],
     );
   }
 
@@ -219,16 +183,12 @@ export default function RecipePage({ recipes = sampleRecipes }) {
       {/* Header */}
       <header className="recipe-header">
         <div className="recipe-logo">Smart Baking Assistant</div>
-        <span className="recipe-header-label">
-          THE RECIPE COLLECTION
-        </span>
+        <span className="recipe-header-label">THE RECIPE COLLECTION</span>
       </header>
 
       {/* Cookbook title */}
       <section className="recipe-hero">
-        <span className="recipe-eyebrow">
-          YOUR KITCHEN COMPANION
-        </span>
+        <span className="recipe-eyebrow">YOUR KITCHEN COMPANION</span>
 
         <div className="recipe-hero-divider">
           <span className="recipe-divider-line"></span>
@@ -259,7 +219,7 @@ export default function RecipePage({ recipes = sampleRecipes }) {
         <h1>The Recipe Book</h1>
       </section>
 
-      {/* Search and filters */}
+      {/* recipe search and filtering controls */}
       <section className="recipe-filter-bar">
         <input
           aria-label="Search recipes"
@@ -295,7 +255,7 @@ export default function RecipePage({ recipes = sampleRecipes }) {
       <main className="recipe-content">
         {selectedRecipe ? (
           <section className="recipe-detail">
-            {/* Return to recipe collection */}
+            {/* Navigation back to the recipe collection */}
             <button
               type="button"
               className="recipe-back"
@@ -318,25 +278,17 @@ export default function RecipePage({ recipes = sampleRecipes }) {
 
             <h2>{selectedRecipe.name ?? selectedRecipe.title}</h2>
 
-            {/* Recipe information */}
+            {/* Recipe details: difficulty, preparation time, cooking time, and servings */}
             <p>
-              {[
-                selectedRecipe.time,
-                selectedRecipe.difficulty
-              ].filter(Boolean).join(" · ")}
+              {[selectedRecipe.time, selectedRecipe.difficulty]
+                .filter(Boolean)
+                .join(" · ")}
             </p>
 
             {(selectedRecipe.prepTime != null ||
               selectedRecipe.cookTime != null ||
               selectedRecipe.servings != null) && (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  gap: "12px",
-                  marginBottom: "25px"
-                }}
-              >
+              <div className="recipe-time-details">
                 {selectedRecipe.prepTime != null && (
                   <span>Prep: {selectedRecipe.prepTime} min</span>
                 )}
@@ -350,69 +302,70 @@ export default function RecipePage({ recipes = sampleRecipes }) {
                 )}
               </div>
             )}
+            <div className="recipe-cooking-layout">
+              <div className="recipe-ingredients-column">
+                {/* interactive ingredient checklist where users can checkoff as they cook */}
+                <h3>Ingredients</h3>
 
-            {/* Ingredient checklist */}
-            <h3>Ingredients</h3>
+                {selectedIngredients.length > 0 ? (
+                  <ul style={{ listStyle: "none", paddingLeft: 0 }}>
+                    {selectedIngredients.map((ingredient, index) => (
+                      <li key={index}>
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checkedIngredients.includes(index)}
+                            onChange={() => toggleIngredient(index)}
+                            style={{ accentColor: "#697a66" }}
+                          />
 
-            {selectedIngredients.length > 0 ? (
-              <ul style={{ listStyle: "none", paddingLeft: 0 }}>
-                {selectedIngredients.map((ingredient, index) => (
-                  <li key={index}>
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        cursor: "pointer"
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checkedIngredients.includes(index)}
-                        onChange={() => toggleIngredient(index)}
-                        style={{ accentColor: "#697a66" }}
-                      />
+                          <span
+                            style={{
+                              textDecoration: checkedIngredients.includes(index)
+                                ? "line-through"
+                                : "none",
+                              opacity: checkedIngredients.includes(index)
+                                ? 0.55
+                                : 1,
+                            }}
+                          >
+                            {ingredientText(ingredient)}
+                          </span>
+                        </label>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>Ingredients have not been added yet.</p>
+                )}
+              </div>
+              <div className="recipe-instructions-column">
+                {/* Step-by-step directions */}
+                <h3>Instructions</h3>
 
-                      <span
-                        style={{
-                          textDecoration: checkedIngredients.includes(index)
-                            ? "line-through"
-                            : "none",
-                          opacity: checkedIngredients.includes(index)
-                            ? 0.55
-                            : 1
-                        }}
-                      >
-                        {ingredientText(ingredient)}
-                      </span>
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Ingredients have not been added yet.</p>
-            )}
-
-            {/* Step-by-step directions */}
-            <h3>Instructions</h3>
-
-            {selectedInstructions.length > 0 ? (
-              <ol>
-                {selectedInstructions.map((instruction, index) => (
-                  <li key={index}>
-                    {instructionText(instruction)}
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p>Instructions have not been added yet.</p>
-            )}
-
+                {selectedInstructions.length > 0 ? (
+                  <ol>
+                    {selectedInstructions.map((instruction, index) => (
+                      <li key={index}>{instructionText(instruction)}</li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p>Instructions have not been added yet.</p>
+                )}
+              </div>
+            </div>
             {/* Hardware integration will be added later. */}
           </section>
         ) : (
           <>
-            {/* Circular category pictures */}
+            {/* Circular category pictures with navigation options */}
             <div className="recipe-categories">
               {categories.map((item) => (
                 <button
@@ -427,43 +380,95 @@ export default function RecipePage({ recipes = sampleRecipes }) {
                     <img src={item.image} alt="" />
                   </span>
 
-                  <span className="recipe-category-label">
-                    {item.name}
-                  </span>
+                  <span className="recipe-category-label">{item.name}</span>
                 </button>
               ))}
             </div>
+            {/* all recipes and my cookbook tabs */}
+            <div className="recipe-collection-tabs">
+              <button
+                type="button"
+                className={!showSavedOnly ? "active" : ""}
+                onClick={() => setShowSavedOnly(false)}
+              >
+                All Recipes
+              </button>
 
+              <button
+                type="button"
+                className={showSavedOnly ? "active" : ""}
+                onClick={() => setShowSavedOnly(true)}
+              >
+                My Cookbook ({savedRecipeIds.length})
+              </button>
+            </div>
             {/* Recipe cards */}
             <div className="recipe-grid">
-              {filteredRecipes.map((recipe) => (
-                <button
-                  key={recipe.id}
-                  type="button"
-                  className="recipe-card"
-                  onClick={() => openRecipe(recipe)}
-                >
-                  {recipe.image && (
-                    <img
-                      src={recipe.image}
-                      alt={recipe.name ?? recipe.title ?? "Recipe"}
-                    />
-                  )}
+              {filteredRecipes
+                .filter(
+                  (recipe) =>
+                    !showSavedOnly || savedRecipeIds.includes(recipe.id),
+                )
+                .map((recipe) => (
+                  <div className="recipe-card-wrapper" key={recipe.id}>
+                    <button
+                      type="button"
+                      className="recipe-card"
+                      onClick={() => openRecipe(recipe)}
+                    >
+                      {recipe.image && (
+                        <img
+                          src={recipe.image}
+                          alt={recipe.name ?? recipe.title ?? "Recipe"}
+                        />
+                      )}
 
-                  <span className="recipe-card-category">
-                    {recipe.category}
-                    {recipe.type ? ` · ${recipe.type}` : ""}
-                  </span>
+                      <span className="recipe-card-category">
+                        {recipe.category}
+                        {recipe.type ? ` · ${recipe.type}` : ""}
+                      </span>
 
-                  <h3>{recipe.name ?? recipe.title}</h3>
+                      <h3>{recipe.name ?? recipe.title}</h3>
 
-                  <p>
-                    {[recipe.time, recipe.difficulty]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                </button>
-              ))}
+                      <p>
+                        {[recipe.time, recipe.difficulty]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </button>
+                    <button
+                      type="button"
+                      className="recipe-bookmark"
+                      aria-label={`Save ${recipe.name ?? recipe.title}`}
+                      onClick={() => {
+                        setSavedRecipeIds((current) =>
+                          current.includes(recipe.id)
+                            ? current.filter((id) => id !== recipe.id)
+                            : [...current, recipe.id],
+                        );
+                      }}
+                    >
+                      {/*bookmark to save or remove recipes from my cookbook*/}
+                      <svg
+                        width="21"
+                        height="21"
+                        viewBox="0 0 24 24"
+                        fill={
+                          savedRecipeIds.includes(recipe.id)
+                            ? "currentColor"
+                            : "none"
+                        }
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M6 4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5V21l-6-4-6 4V4.5Z" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
             </div>
 
             {filteredRecipes.length === 0 && (
@@ -475,9 +480,7 @@ export default function RecipePage({ recipes = sampleRecipes }) {
         )}
       </main>
 
-      <footer className="recipe-footer">
-        Kitchen Companion
-      </footer>
+      <footer className="recipe-footer">Kitchen Companion</footer>
     </div>
   );
 }
