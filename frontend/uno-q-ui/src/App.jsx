@@ -1,4 +1,8 @@
 import { useEffect, useState } from "react";
+import { HashRouter, Routes, Route } from "react-router-dom";
+import DashboardPage from "./pages/DashboardPage";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
 
 export default function App() {
   const [sensor, setSensor] = useState(null);
@@ -7,32 +11,42 @@ export default function App() {
 
   useEffect(() => {
     const proto = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${proto}://${location.host}/ws`);
-    ws.onopen = () => setStatus("connected");
-    ws.onclose = () => setStatus("disconnected");
-    ws.onmessage = (e) => {
+    const ws = new WebSocket(`${proto}://${location.host}/ws`); //opens web socket connection to the apps /ws endpoint
+    ws.onopen = () => setStatus("connected"); //set status on open
+    ws.onclose = () => setStatus("disconnected"); //set status on close
+    ws.onmessage = (e) => { //how to handle each message received over the connection
       const msg = JSON.parse(e.data);
-      if (msg.type === "sensor") setSensor(msg.value);
+      if (msg.type === "sensor") setSensor(msg.value); //if its a sensor message
     };
-    return () => ws.close();
-  }, []);
+    return () => ws.close(); //close connection when component is unmounted
+  }, []); //runs effect after the initial render
 
   const toggleLed = async () => {
-    const next = !ledOn;
-    const res = await fetch("/api/led", {
+    const next = !ledOn; //next state is opposite of the current value
+    const res = await fetch("/api/led", { //send api request to led endpoint
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ on: next }),
     });
-    if (res.ok) setLedOn(next);
+    if (res.ok) setLedOn(next); //if the status is 200, then set the led to the next value
   };
 
+/* CODE THAT SHOWS THE READS THE ARDUINO DATA AND SHOWS IT IN THE FRONTEND --> SAVED HERE FOR LATER
+<h1>UNO Q Link Test</h1>
+<p>WebSocket: {status}</p>
+<p>Sensor (A0): <strong>{sensor ?? "waiting..."}</strong></p>
+<button onClick={toggleLed}>LED: {ledOn ? "ON" : "OFF"}</button>
+*/
   return (
-    <main style={{ padding: 24, fontFamily: "sans-serif" }}>
-      <h1>UNO Q Link Test</h1>
-      <p>WebSocket: {status}</p>
-      <p>Sensor (A0): <strong>{sensor ?? "waiting..."}</strong></p>
-      <button onClick={toggleLed}>LED: {ledOn ? "ON" : "OFF"}</button>
-    </main>
+    <HashRouter>
+      <main style={{ padding: 24, fontFamily: "sans-serif" }}>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+        </Routes>
+
+      </main>
+    </HashRouter>
   );
 }
