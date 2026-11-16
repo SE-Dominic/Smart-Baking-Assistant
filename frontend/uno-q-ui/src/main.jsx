@@ -7,6 +7,6 @@ import Recipes from './RecipePage.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-   <Recipes />
+   <App />
   </StrictMode>,
 )
