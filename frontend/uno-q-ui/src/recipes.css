@@ -7,9 +7,186 @@
    recipe cards, and responsive design.
  */
 
+/*
+ * Website fonts
+ *
+ * Cormorant Garamond:for headings
+ * Lato:for body text
+ */
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Lato:wght@400;500;700&display=swap');
+
+
 /* Main recipe page container */
 .recipe-page {
   background-color: #FAF8F3;
   min-height: 100vh;
   padding: 60px 40px;
+  background-color: #FFF5E7;
+  /* Keep the entire illustration visible instead of cropping it. */
+  
+  min-height: 100vh;
+
 }
+
+/*
+ * Recipe page heading
+ *
+ * Uses Libre Baskerville for the font 
+ */
+.recipe-page h1 { 
+  font-family: "Cormorant Garamond", serif;
+  font-size: 56px;
+  font-weight: 400;
+  color: #4B382C;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+/*
+ * Recipe page intro
+ */
+.recipe-page > p {
+  font-family: "Lato", sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  color: #8A7766;
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 40px;
+}
+
+/*
+ * Recipe search bar
+ */
+.recipe-page input[type="text"] {
+  width: 100%;
+  max-width: 500px;
+  padding: 14px 18px;
+  font-family: "Lato", sans-serif;
+  font-size: 15px;
+  color: #4B382C;
+  background-color: #FFFFFF;
+  border: 1px solid #D6C4AD;
+  border-radius: 8px;
+  outline-color: #A18A75;
+}
+
+/*
+ * Recipe cards:
+ * Each article represents one recipe.
+ * warm white background
+ * sborders w/ rounded corners for more inviting look 
+ */
+.recipe-page article {
+  background-color: #FFFEFC;
+  border: 1px solid #E8DED2;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/*
+ * Recipe card titles
+ */
+.recipe-page article h2 {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 30px;
+  font-weight: 600;
+  color: #4B382C;
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+
+/*
+ * Recipe card details:
+   descriptions, categories, and cooking times.
+ */
+.recipe-page article p {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: #8A7766;
+  line-height: 1.6;
+  margin: 6px 0;
+}
+
+/*
+ * Recipe grid layout:
+   Displays cards in columns
+   adjusts the number of columns depending on the available screen width.
+ */
+.recipe-page section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 24px;
+  max-width: 1100px;
+  margin: 40px auto;
+}
+
+/*
+ * Recipe image placeholder:
+ */
+.recipe-image-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+
+  background-color: #EDE5D8;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  color: #8A7766;
+
+  margin-bottom: 20px;
+}
+
+/*
+ * Search bar alignment
+ */
+.recipe-page > div {
+  display: flex;
+  justify-content: center;
+}
+
+/*
+ * Recipe filter dropdowns
+   colors to match the recipe page.
+ */
+.recipe-filters {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+/* Labels above each dropdown */
+.recipe-filters label {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4B382C;
+}
+
+/* Dropdown appearance */
+.recipe-filters select {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  color: #4B382C;
+  background-color: #FFFEFC;
+  border: 1px solid #D8C8B8;
+  border-radius: 8px;
+  padding: 12px 16px;
+  min-width: 200px;
+  cursor: pointer;
+}
+
+/* Highlight the dropdown when selected */
+.recipe-filters select:focus {
+  outline: 2px solid #B9A18C;
+  outline-offset: 2px;
+}
+

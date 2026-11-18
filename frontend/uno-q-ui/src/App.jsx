@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import RecipePage from "./RecipePage";
 import { HashRouter, Routes, Route } from "react-router-dom";
 import DashboardPage from "./pages/DashboardPage";
 import AboutPage from "./pages/AboutPage";
@@ -8,6 +9,8 @@ export default function App() {
   const [sensor, setSensor] = useState(null);
   const [ledOn, setLedOn] = useState(false);
   const [status, setStatus] = useState("connecting...");
+  // keeps track of which page is being shown
+const [currentPage, setCurrentPage] = useState("recipes");
 
   useEffect(() => {
     const proto = location.protocol === "https:" ? "wss" : "ws";
@@ -31,6 +34,45 @@ export default function App() {
     if (res.ok) setLedOn(next); //if the status is 200, then set the led to the next value
   };
 
+  
+return (
+  <div>
+    {/* buttons to switch between the recipe page and UNO Q test */}
+    <nav style={{
+      display: "flex",
+      justifyContent: "center",
+      gap: "12px",
+      padding: "12px",
+      background: "#f3f1eb"
+    }}>
+      <button onClick={() => setCurrentPage("recipes")}>
+        Recipes
+      </button>
+
+      <button onClick={() => setCurrentPage("hardware")}>
+        UNO Q Test
+      </button>
+    </nav>
+
+    {/* show whichever page the user selected */}
+    {currentPage === "recipes" ? (
+      <RecipePage />
+    ) : (
+      <main style={{ padding: 24, fontFamily: "sans-serif" }}>
+        <h1>UNO Q Link Test</h1>
+        <p>WebSocket: {status}</p>
+        <p>
+          Sensor (A0): <strong>{sensor ?? "waiting..."}</strong>
+        </p>
+        <button onClick={toggleLed}>
+          LED: {ledOn ? "ON" : "OFF"}
+        </button>
+      </main>
+    )}
+  </div>
+);
+
+}
 /* CODE THAT SHOWS THE READS THE ARDUINO DATA AND SHOWS IT IN THE FRONTEND --> SAVED HERE FOR LATER
 <h1>UNO Q Link Test</h1>
 <p>WebSocket: {status}</p>
