@@ -3,11 +3,11 @@ import "./About.css";
 
 // Replace the placeholder values when you have the real info
 const TEAM_MEMBERS = [
-    { id: 1, name: "Developer Name", role: "Role", image: "", bio: "Short description goes here." },
-    { id: 2, name: "Developer Name", role: "Role", image: "", bio: "Short description goes here." },
-    { id: 3, name: "Developer Name", role: "Role", image: "", bio: "Short description goes here." },
-    { id: 4, name: "Developer Name", role: "Role", image: "", bio: "Short description goes here." },
-    { id: 5, name: "Developer Name", role: "Role", image: "", bio: "Short description goes here." },
+    { id: 1, name: "Jose Bianchi", role: "Developer", image: "", bio: "Short description goes here." },
+    { id: 2, name: "Dominic Allen", role: "Scrum Master", image: "", bio: "Short description goes here." },
+    { id: 3, name: "Thomas Haugstad", role: "Developer", image: "", bio: "Short description goes here." },
+    { id: 4, name: "Carlie Gonzalez", role: "Developer", image: "", bio: "Short description goes here." },
+    { id: 5, name: "Alex Posadas", role: "Developer", image: "", bio: "Short description goes here." },
 ];
 
 export default function AboutPage() {
