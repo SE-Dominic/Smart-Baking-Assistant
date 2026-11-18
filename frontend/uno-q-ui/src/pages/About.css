@@ -1,0 +1,93 @@
+#about-project,
+#about-team {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
+    border: 1px solid rgb(112 75 45 / 17%);
+    border-radius: 16px;
+    background: rgb(255 251 241 / 56%);
+}
+
+#about-project {
+    margin-bottom: 24px;
+}
+
+#about-project h1,
+#about-team h2 {
+    margin-top: 0;
+    color: #563c2c;
+}
+
+#about-project h1 {
+    margin-bottom: 18px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.1;
+}
+
+#about-project p {
+    max-width: 70ch;
+    margin-bottom: 0;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: #704b2d;
+}
+
+.team-card p:not(.team-role) {
+    color: #704b2d;
+    line-height: 1.6;
+}
+
+.team-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.team-card {
+    min-width: 0;
+    padding: 14px;
+    border: 1px solid rgb(112 75 45 / 12%);
+    border-radius: 12px;
+    background: rgb(255 255 255 / 54%);
+    text-align: center;
+}
+
+.team-card img,
+.team-photo-placeholder {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 12px;
+}
+
+.team-photo-placeholder {
+    background: rgb(168 132 96 / 13%);
+}
+
+.team-card h3 {
+    color: #563c2c;
+}
+
+.team-role {
+    font-weight: 600;
+    color: #9a704e;
+}
+
+/* Stack the cards on smaller screens so five side by side doesn't get cramped */
+@media (max-width: 900px) {
+    .team-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    #about-project,
+    #about-team {
+        padding: 18px;
+    }
+
+    .team-grid {
+        grid-template-columns: 1fr;
+    }
+}
