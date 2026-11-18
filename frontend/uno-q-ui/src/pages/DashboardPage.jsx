@@ -86,19 +86,42 @@ export default function DashboardPage() {
         isMounted = false;
     };
 }, []);
+
+// Individual card that shows a shimmer placeholder until its image finishes loading
+    function PopularRecipeCard({ recipe }) {
+        const [imageLoaded, setImageLoaded] = useState(false);
+
+        return (
+            <article className="popular-recipe">
+                <div className={`recipe-image-wrapper ${!imageLoaded ? "skeleton-shimmer" : ""}`}>
+                    <img
+                        src={recipe.strMealThumb}
+                        alt={recipe.strMeal}
+                        className={imageLoaded ? "is-loaded" : ""}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => setImageLoaded(true)}
+                    />
+                </div>
+                <h4>{recipe.strMeal}</h4>
+            </article>
+        );
+    }
+    
     function displayPopularRecipes() {
         if (recipesLoading) {
-            return <p>Loading popular recipes...</p>; //implement dynamic loading symbol later
+            return Array.from({ length: 3 }).map((_, index) => (
+                <article className="popular-recipe skeleton-card" key={index} aria-hidden="true">
+                    <div className="recipe-image-wrapper skeleton-shimmer" />
+                    <div className="skeleton-title skeleton-shimmer" />
+                </article>
+            ));
         }
         if (recipesError) {
             return <p role="alert">Unable to load popular recipes: {recipesError}</p>;
         }
 
         return popularRecipes.map((recipe) => (
-            <article className="popular-recipe" key={recipe.idMeal}>
-                <img src={recipe.strMealThumb} alt={recipe.strMeal} />
-                <h4>{recipe.strMeal}</h4>
-            </article>
+            <PopularRecipeCard key={recipe.idMeal} recipe={recipe} />
         ));
     }
 

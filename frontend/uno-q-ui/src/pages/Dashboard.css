@@ -105,16 +105,76 @@
     text-align: center;
 }
 
+/* Locks the 4:3 space before the image arrives so the page doesn't jump */
+.recipe-image-wrapper {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: #edd9be; /* Slightly deeper base color for more contrast */
+}
+
 .popular-recipe img {
     display: block;
     width: 100%;
-    aspect-ratio: 4 / 3;
+    height: 100%;
     object-fit: cover;
-    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 350ms ease-in-out;
+}
+
+.popular-recipe img.is-loaded {
+    opacity: 1;
 }
 
 .popular-recipe h4 {
-    
+    margin: 10px 0 0;
+    color: #563c2c;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+/* Skeleton title bar shown during initial API fetch */
+.skeleton-title {
+    width: 72%;
+    height: 14px;
+    margin: 12px auto 0;
+    border-radius: 7px;
+    background-color: #edd9be;
+}
+
+
+.skeleton-shimmer {
+  display: inline-block;
+  position: relative;
+  overflow: hidden;
+  background-color: #f4e8d4; 
+  border-radius: 8px;
+}
+
+.skeleton-shimmer::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0,
+    rgba(255, 255, 255, 0.3) 20%,
+    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 1.6s infinite;
+  content: '';
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .upcoming-recipes {
@@ -144,11 +204,33 @@
     background: rgb(255 255 255 / 54%);
 }
 
+/* Applied the shimmer effect to placeholder lines and boxes */
 .placeholder-image,
 .placeholder-line {
+    position: relative;
+    overflow: hidden;
     display: block;
     border-radius: 7px;
-    background: rgb(168 132 96 / 13%);
+    background-color: #f4e8d4;
+}
+
+.placeholder-image::after,
+.placeholder-line::after {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.3) 20%,
+        rgba(255, 255, 255, 0.7) 60%,
+        rgba(255, 255, 255, 0)
+    );
+    animation: shimmer 1.6s infinite;
+    content: '';
 }
 
 .placeholder-image {
@@ -162,31 +244,37 @@
 }
 
 .placeholder-line-short {
-    
+    width: 65%;
+}
+
+@keyframes shimmer {
+    100% {
+        transform: translateX(100%);
+    }
 }
 
 @media (max-width: 600px) {
     .app-shell {
-    padding: 16px;
-}
+        padding: 16px;
+    }
 
-.main-nav-bar {
-    flex-wrap: wrap;
-    gap: 12px 18px;
-}
+    .main-nav-bar {
+        flex-wrap: wrap;
+        gap: 12px 18px;
+    }
 
-.main-nav-bar ul {
-    order: 1;
-    width: 100%;
-}
+    .main-nav-bar ul {
+        order: 1;
+        width: 100%;
+    }
 
-#mostRecentRecipes {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-}
+    #mostRecentRecipes {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
 
-.recipe-placeholder-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-}
+    .recipe-placeholder-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
 }
