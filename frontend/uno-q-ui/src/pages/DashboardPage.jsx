@@ -107,7 +107,7 @@ export default function DashboardPage() {
             <nav className="main-nav-bar">
                 <h2>Smart Baking App</h2>
                 <ul>
-                    <li><Link to="/">Recipes</Link></li>
+                    <li><Link to="/recipe">Recipes</Link></li>
                     <li><Link to="/about">About</Link></li>
                     <li><Link to="/contact">Contact</Link></li>
                 </ul>
