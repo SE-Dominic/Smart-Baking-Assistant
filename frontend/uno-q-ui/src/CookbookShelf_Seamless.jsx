@@ -105,13 +105,13 @@ const DIETARY_BOOKS = BOOKS.slice(5);
 const BOOK_WIDTH = 1.65;
 const BOOK_HEIGHT = 2.45;
 const BOOK_DEPTH = 0.26;
-const BOARD_T = 0.03; // thickness of each hard cover board
+const BOARD_T = 0.045; // thickness of each hard cover board
 const BOOK_SPACING = 1.95;
 const SHELF_WIDTH = 11.6;
 const SHELF_TOP = -BOOK_HEIGHT / 2; // books stand exactly on this height
 
 const CORNER_LEFT = 0.015; // spine side stays crisp
-const CORNER_RIGHT = 0.07; // fore-edge corners are soft and cute
+const CORNER_RIGHT = 0.035; // fore-edge corners are soft and cute
 
 const SERIF =
   '"Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif';
@@ -189,19 +189,37 @@ function getLinenTexture() {
 // Fine paper sheets on the fore-edge (vertical lines) and top/bottom.
 const edgeTextures = {};
 function getEdgeTexture(vertical) {
-  const key = vertical ? "v" : "h";
+  const key = vertical ? "v-photoreal" : "h-photoreal";
   if (edgeTextures[key]) return edgeTextures[key];
-
-  const [canvas, g] = vertical ? makeCanvas(256, 16) : makeCanvas(16, 256);
-  g.fillStyle = "#F9F1E0";
-  g.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (let i = 0; i < 256; i += 2) {
-    g.fillStyle = `rgba(150,120,80,${rand(0.08, 0.22)})`;
-    if (vertical) g.fillRect(i, 0, 1, 16);
-    else g.fillRect(0, i, 16, 1);
+  // A high-resolution page block with hundreds of extremely fine sheet seams.
+  // Fore-edge sheets run along the depth; top and bottom sheets run across depth.
+  const [canvas, g] = vertical ? makeCanvas(1024, 64) : makeCanvas(64, 1024);
+  const W = canvas.width, H = canvas.height;
+  g.fillStyle = "#eee3cf";
+  g.fillRect(0, 0, W, H);
+  const n = 650;
+  for (let i = 0; i < n; i++) {
+    const t = i / (n - 1);
+    const p = Math.round(t * (vertical ? W : H));
+    const seam = i % 9 === 0 ? 0.19 : i % 3 === 0 ? 0.12 : 0.065;
+    g.fillStyle = `rgba(77,58,41,${seam})`;
+    if (vertical) g.fillRect(p, 0, 1, H);
+    else g.fillRect(0, p, W, 1);
+    if (i % 4 === 0) {
+      g.fillStyle = "rgba(255,252,239,0.45)";
+      if (vertical) g.fillRect(p + 1, 0, 1, H);
+      else g.fillRect(0, p + 1, W, 1);
+    }
   }
-
+  // Darken the outer corners of the page block, where light is occluded.
+  const shade = vertical ? g.createLinearGradient(0, 0, W, 0)
+                         : g.createLinearGradient(0, 0, 0, H);
+  shade.addColorStop(0, "rgba(72,48,26,0.19)");
+  shade.addColorStop(0.1, "rgba(72,48,26,0.02)");
+  shade.addColorStop(0.85, "rgba(72,48,26,0.01)");
+  shade.addColorStop(1, "rgba(72,48,26,0.22)");
+  g.fillStyle = shade;
+  g.fillRect(0, 0, W, H);
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
   tex.anisotropy = 8;
@@ -417,9 +435,20 @@ function CoverFace({ book }) {
 
   useEffect(() => () => texture.dispose(), [texture]);
 
+  const faceGeometry = useMemo(() => {
+    const geometry = new THREE.PlaneGeometry(BOOK_WIDTH, BOOK_HEIGHT, 32, 16);
+    const positions = geometry.attributes.position;
+    for (let i = 0; i < positions.count; i++) {
+      const x = positions.getX(i) / (BOOK_WIDTH / 2);
+      positions.setZ(i, 0.006 * (1 - x * x));
+    }
+    geometry.computeVertexNormals();
+    return geometry;
+  }, []);
+  useEffect(() => () => faceGeometry.dispose(), [faceGeometry]);
+
   return (
-    <mesh position={[0, 0, BOOK_DEPTH / 2 + 0.002]} userData={{ skip: true }}>
-      <planeGeometry args={[BOOK_WIDTH, BOOK_HEIGHT]} />
+    <mesh geometry={faceGeometry} position={[0, 0, BOOK_DEPTH / 2 + 0.002]} userData={{ skip: true }}>
       {/*
         The emissive copy of the photo keeps the colours bright and
         appetising under any lighting. Lower emissiveIntensity if you
@@ -429,8 +458,8 @@ function CoverFace({ book }) {
         map={texture}
         emissiveMap={texture}
         emissive="#ffffff"
-        emissiveIntensity={0.42}
-        roughness={0.5}
+        emissiveIntensity={0.065}
+        roughness={0.84}
         metalness={0}
         transparent
         alphaTest={0.5}
@@ -472,39 +501,137 @@ function makeBoardGeometry() {
     curveSegments: 16,
   });
   geometry.translate(0, 0, -depth / 2);
+  const pos = geometry.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i) / (BOOK_WIDTH / 2);
+    pos.setZ(i, pos.getZ(i) + 0.006 * (1 - x * x));
+  }
+  geometry.computeVertexNormals();
   return geometry;
 }
 
 // The entire interaction lives inside this component; RecipePage.jsx stays unchanged.
-const MAGICAL_MODE = true;
+const MAGICAL_MODE = false; // restrained, physical book motion
 const ANIMATION_SECONDS = 3.20;
 const smoothstep = (a, b, x) => {
   const t = THREE.MathUtils.clamp((x - a) / (b - a), 0, 1);
   return t * t * (3 - 2 * t);
 };
 
-function TurningPage({ index, progress, magical }) {
+// Printed paper is a single texture on the deforming surface, not separate
+// floating rectangles. This keeps the ink attached to the curling sheet.
+function makeInteriorTexture(book, side = "right", pageNumber = 1) {
+  const [canvas, g] = makeCanvas(768, 1120);
+  const W = canvas.width, H = canvas.height;
+  g.fillStyle = "#f7f0e2";
+  g.fillRect(0, 0, W, H);
+  // Subtle paper fibres and warm shading near the binding.
+  const shade = g.createLinearGradient(0, 0, W, 0);
+  if (side === "right") {
+    shade.addColorStop(0, "rgba(82,58,38,.17)");
+    shade.addColorStop(.12, "rgba(82,58,38,.035)");
+    shade.addColorStop(1, "rgba(255,255,255,.025)");
+  } else {
+    shade.addColorStop(0, "rgba(255,255,255,.025)");
+    shade.addColorStop(.88, "rgba(82,58,38,.035)");
+    shade.addColorStop(1, "rgba(82,58,38,.17)");
+  }
+  g.fillStyle = shade; g.fillRect(0, 0, W, H);
+  let seed = pageNumber * 193 + 71;
+  const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  for (let i = 0; i < 13000; i++) {
+    g.fillStyle = random() > .5 ? "rgba(104,82,53,.022)" : "rgba(255,255,255,.11)";
+    g.fillRect(random()*W, random()*H, 1, 1);
+  }
+  g.fillStyle = "#8b7663";
+  g.font = '19px Georgia, serif';
+  g.textAlign = "center";
+  g.fillText("THE RECIPE BOOK", W/2, 80);
+  g.fillStyle = "#49372b";
+  g.font = 'bold 51px Georgia, serif';
+  g.fillText(book.name, W/2, 180);
+  g.strokeStyle = "#c6ac8a"; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(95, 217); g.lineTo(W-95, 217); g.stroke();
+  // A recipe-like editorial layout, with real texture rather than 3D bars.
+  const lengths = [.93,.84,.96,.88,.76,.94,.86,.91,.69,.95,.81,.89];
+  lengths.forEach((length, i) => {
+    const y = 280 + i * 54;
+    g.fillStyle = i % 4 === 0 ? "rgba(79,58,43,.52)" : "rgba(79,58,43,.28)";
+    g.fillRect(95, y, (W-190)*length, i%4===0 ? 5 : 3);
+  });
+  g.fillStyle = "#998775"; g.font = '19px Georgia, serif';
+  g.fillText(String(pageNumber).padStart(2, '0'), W/2, H-65);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 8;
+  return texture;
+}
+
+function InteriorSpread({ book }) {
+  const right = useMemo(() => makeInteriorTexture(book, "right", 3), [book]);
+  useEffect(() => () => { right.dispose(); }, [right]);
+  const w = BOOK_WIDTH - .17, h = BOOK_HEIGHT - .15;
+  return (
+    <group position={[-BOOK_WIDTH/2 + .085, 0, BOOK_DEPTH/2 - BOARD_T + .009]}>
+      {/* Right-hand page lies on the page block; the left page is visible
+          when the front cover swings open. */}
+      <mesh position={[w/2, 0, 0.008]}>
+        <planeGeometry args={[w, h, 16, 1]} />
+        <meshStandardMaterial map={right} roughness={1} side={THREE.DoubleSide} />
+      </mesh>
+
+    </group>
+  );
+}
+
+function InsideCover({ book }) {
+  const texture = useMemo(() => makeInteriorTexture(book, "left", 2), [book]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return (
+    <mesh position={[0, 0, BOOK_DEPTH/2 - BOARD_T - .004]}>
+      <planeGeometry args={[BOOK_WIDTH - .14, BOOK_HEIGHT - .13]} />
+      <meshStandardMaterial map={texture} side={THREE.DoubleSide} roughness={1} />
+    </mesh>
+  );
+}
+
+function TurningPage({ index, progress, book }) {
   const pivot = useRef();
+  const w = BOOK_WIDTH - .17;
+  const h = BOOK_HEIGHT - .15;
+  const geometry = useMemo(() => {
+    const g = new THREE.PlaneGeometry(w, h, 32, 10);
+    g.translate(w/2, 0, 0); // bind the actual mesh at its left edge
+    return g;
+  }, [w, h]);
+  const front = useMemo(() => makeInteriorTexture(book, "right", index * 2 + 5), [book, index]);
+  const back = useMemo(() => makeInteriorTexture(book, "left", index * 2 + 6), [book, index]);
+  useEffect(() => () => { geometry.dispose(); front.dispose(); back.dispose(); }, [geometry, front, back]);
   useFrame(() => {
-    if (!pivot.current) return;
-    // Each page begins a little later than the previous one.
-    const start = 1.6 + index * 0.22;
-    const turn = smoothstep(start, start + 0.46, progress.current);
-    pivot.current.rotation.y = -Math.PI * 0.96 * turn;
+    const start = 1.45 + index * .23;
+    const turn = smoothstep(start, start + .68, progress.current);
+    if (pivot.current) pivot.current.rotation.y = -Math.PI * .96 * turn;
+    const pos = geometry.attributes.position;
+    // The sheet starts and ends nearly flat, arching naturally in transit.
+    const curl = Math.sin(Math.PI * turn);
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i);
+      const u = x / w;
+      const y = pos.getY(i);
+      const verticalTaper = .92 + .08 * Math.cos(y/h * Math.PI);
+      pos.setZ(i, Math.sin(u * Math.PI) * .21 * curl * verticalTaper + .018 * u * curl);
+    }
+    pos.needsUpdate = true;
+    geometry.computeVertexNormals();
   });
   return (
-    <group ref={pivot} position={[-BOOK_WIDTH / 2 + 0.08, 0, BOOK_DEPTH / 2 - BOARD_T + 0.007 + index * 0.004]}>
-      <mesh position={[(BOOK_WIDTH - 0.16) / 2, 0, 0]}>
-        <planeGeometry args={[BOOK_WIDTH - 0.16, BOOK_HEIGHT - 0.12]} />
-        <meshStandardMaterial color={magical ? '#FFF4DC' : '#F8F0DE'} side={THREE.DoubleSide} roughness={0.92} />
+    <group ref={pivot} position={[-BOOK_WIDTH/2 + .085, 0, BOOK_DEPTH/2 - BOARD_T + .018 + index*.003]}>
+      <mesh geometry={geometry}>
+        <meshStandardMaterial map={front} side={THREE.FrontSide} roughness={1} />
       </mesh>
-      {/* Decorative ink lines give each page a recipe-book appearance. */}
-      {Array.from({ length: 7 }, (_, line) => (
-        <mesh key={line} position={[0.35 + (line % 2) * 0.08, 0.75 - line * 0.23, 0.003]}>
-          <planeGeometry args={[0.72 - (line % 3) * 0.11, 0.012]} />
-          <meshBasicMaterial color={magical ? '#C79B70' : '#A99A86'} side={THREE.DoubleSide} />
-        </mesh>
-      ))}
+      <mesh geometry={geometry}>
+        <meshStandardMaterial map={back} side={THREE.BackSide} roughness={1} />
+      </mesh>
     </group>
   );
 }
@@ -605,22 +732,35 @@ function Cookbook({ book, position, onSelect, activeBook, onBookClick, magical =
       >
         {/* Back hardcover board */}
         <mesh geometry={boardGeometry} position={[0, 0, -BOOK_DEPTH / 2 + BOARD_T / 2]}>
-          <meshStandardMaterial color={book.color} map={linen} roughness={0.88} />
+          <meshStandardMaterial color={book.color} map={linen} roughness={0.94} />
         </mesh>
         {/* Book spine */}
-        <RoundedBox args={[0.1, BOOK_HEIGHT - 0.01, BOOK_DEPTH - 0.006]} radius={0.03} smoothness={4} position={[-BOOK_WIDTH / 2 + 0.046, 0, 0]}>
-          <meshStandardMaterial color={book.color} map={linen} roughness={0.85} />
-        </RoundedBox>
-        {/* Page block */}
-        <mesh position={[0.01, 0, 0]}>
-          <boxGeometry args={[pageW, pageH, pageD]} />
-          <meshStandardMaterial attach="material-0" map={edgeSide} roughness={0.95} />
-          <meshStandardMaterial attach="material-1" color="#F3EAD6" roughness={0.95} />
-          <meshStandardMaterial attach="material-2" map={edgeTop} roughness={0.95} />
-          <meshStandardMaterial attach="material-3" map={edgeTop} roughness={0.95} />
-          <meshStandardMaterial attach="material-4" color="#F3EAD6" roughness={0.95} />
-          <meshStandardMaterial attach="material-5" color="#F3EAD6" roughness={0.95} />
+        
+{/* Cloth-wrapped, rounded spine: understated rather than decorative. */}
+        <group position={[-BOOK_WIDTH / 2 + 0.025, 0, 0]}>
+          <RoundedBox args={[0.115, BOOK_HEIGHT - 0.015, BOOK_DEPTH + 0.01]} radius={0.05} smoothness={10}>
+            <meshPhysicalMaterial color={book.color} map={linen} roughness={0.93} clearcoat={0.03} />
+          </RoundedBox>
+          {/* Recessed hinge grooves at the junction with each board. */}
+          {[-1, 1].map((side) => (
+            <mesh key={side} position={[0.068, 0, side * (BOOK_DEPTH / 2 - 0.016)]}>
+              <boxGeometry args={[0.009, BOOK_HEIGHT - 0.035, 0.004]} />
+              <meshStandardMaterial color="#382d26" transparent opacity={0.24} roughness={1} />
+            </mesh>
+          ))}
+        </group>
+
+        {/* Fine paper block, recessed behind the overhanging covers. */}
+        <mesh position={[0.035, 0, 0]}>
+          <boxGeometry args={[pageW - 0.05, pageH - 0.02, pageD]} />
+          <meshStandardMaterial attach="material-0" map={edgeSide} roughness={1} />
+          <meshStandardMaterial attach="material-1" map={edgeSide} roughness={1} />
+          <meshStandardMaterial attach="material-2" map={edgeTop} roughness={1} />
+          <meshStandardMaterial attach="material-3" map={edgeTop} roughness={1} />
+          <meshStandardMaterial attach="material-4" color="#f5ecd9" roughness={1} />
+          <meshStandardMaterial attach="material-5" color="#e8dcc6" roughness={1} />
         </mesh>
+
         {/* Ribbon bookmark */}
         <mesh position={[0.35, BOOK_HEIGHT / 2 - 0.055, 0]} rotation={[0, 0, -0.1]}>
           <boxGeometry args={[0.055, 0.4, 0.012]} />
@@ -630,14 +770,16 @@ function Cookbook({ book, position, onSelect, activeBook, onBookClick, magical =
         <group ref={coverRef} position={[-BOOK_WIDTH / 2, 0, 0]}>
           <group position={[BOOK_WIDTH / 2, 0, 0]}>
             <mesh geometry={boardGeometry} position={[0, 0, BOOK_DEPTH / 2 - BOARD_T / 2]}>
-              <meshStandardMaterial color={book.color} map={linen} roughness={0.88} side={THREE.DoubleSide} />
+              <meshStandardMaterial color={book.color} map={linen} roughness={0.94} side={THREE.DoubleSide} />
             </mesh>
             <CoverFace book={book} />
+            {active && <InsideCover book={book} />}
           </group>
         </group>
-        {/* Turning pages only mount for the selected book. */}
-        {active && Array.from({ length: magical ? 5 : 4 }, (_, i) => (
-          <TurningPage key={i} index={i} progress={progress} magical={magical} />
+        {/* Printed pages become visible as the hardcover opens. */}
+        {active && <InteriorSpread book={book} />}
+        {active && Array.from({ length: 4 }, (_, i) => (
+          <TurningPage key={i} index={i} progress={progress} book={book} />
         ))}
         {magical && active && <Sparkles progress={progress} />}
       </group>
@@ -834,10 +976,10 @@ function BookshelfScene({ onSelect, onStart }) {
   return (
     <>
       {/* Soft, warm studio lighting */}
-      <hemisphereLight args={["#FFF6E8", "#C9A98A", 1.1]} />
+      <hemisphereLight args={["#FFF6E8", "#C9A98A", 0.85]} />
       <directionalLight
         position={[-4, 6, 9]}
-        intensity={2.3}
+        intensity={1.65}
         color="#FFF1DE"
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -849,9 +991,9 @@ function BookshelfScene({ onSelect, onStart }) {
         shadow-camera-far={30}
         shadow-bias={-0.0004}
         shadow-normalBias={0.03}
-        shadow-radius={5}
+        shadow-radius={3}
       />
-      <directionalLight position={[6, 2, 6]} intensity={0.55} color="#FFE3C7" />
+      <directionalLight position={[6, 2, 6]} intensity={0.35} color="#FFE3C7" />
 
       <group ref={sceneRef} scale={scale} position={[0, 1.2 * scale, 0]}>
          <mesh position={[0, 0, -0.8]} receiveShadow userData={{ skip: true }}>
