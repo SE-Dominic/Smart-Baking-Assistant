@@ -112,7 +112,7 @@
     aspect-ratio: 4 / 3;
     overflow: hidden;
     border-radius: 8px;
-    background-color: #edd9be; /* Slightly deeper base color for more contrast */
+    background-color: #edd9be; 
 }
 
 .popular-recipe img {
